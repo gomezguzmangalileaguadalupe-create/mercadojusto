@@ -1,26 +1,24 @@
-FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 \
-    PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH \
-    PORT=10000 \
-    SPARK_LOCAL_IP=127.0.0.1
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
-# Java 17 es necesario para ejecutar PySpark.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    openjdk-17-jre-headless \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Instalar Java 17
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jre-headless ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
+# Configurar Java
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Instalar dependencias
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copiar proyecto
 COPY . .
 
-EXPOSE 10000
+ENV PYTHONUNBUFFERED=1
 
 CMD ["python", "mercado.py"]
